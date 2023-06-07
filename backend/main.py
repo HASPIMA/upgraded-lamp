@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from src.prisma import prisma
+from src.routes import routes
 
 app = FastAPI()
 
@@ -20,6 +21,8 @@ app.add_middleware(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.include_router(routes, prefix="/api")
+
 
 @app.on_event("startup")
 async def startup():
