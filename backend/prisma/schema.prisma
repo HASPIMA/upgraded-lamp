@@ -36,9 +36,8 @@ model tokens {
 model usuarios {
   id                 Int         @id @default(autoincrement())
   nombre             String?     @db.VarChar(255)
-  telefono           String?     @db.VarChar(255)
-  identificacion     String?     @db.VarChar(255)
-  correo_electronico String?     @db.VarChar(255)
+  identificacion     String?     @unique @db.VarChar(255)
+  correo_electronico String?     @unique @db.VarChar(255)
   contrasena         String?     @db.VarChar(255)
   favoritos          favoritos[]
   tokens             tokens[]
