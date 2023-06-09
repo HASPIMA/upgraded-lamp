@@ -18,7 +18,7 @@ def hash_password(password: str, salt: Optional[bytes] = None) -> tuple[str, str
     Returns
     -------
     tuple[str, str]
-        A tuple containing the hashed password and the salt used.
+        A tuple containing the hashed password and the salt used base64 encoded.
     """
 
     if salt is None:
