@@ -10,35 +10,39 @@ datasource db {
 }
 
 model comics {
-  id          Int         @id
-  titulo      String?     @db.VarChar(255)
-  descripcion String?     @db.VarChar(255)
-  imagen      String?     @db.VarChar(255)
-  favoritos   favoritos[]
+  id          Int     @id
+  titulo      String? @db.VarChar(255)
+  descripcion String? @db.VarChar(255)
+  imagen      String? @db.VarChar(255)
+
+  favoritos favoritos[]
 }
 
 model favoritos {
   id_usuario Int
   id_comic   Int
-  comics     comics   @relation(fields: [id_comic], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  usuarios   usuarios @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  comics   comics   @relation(fields: [id_comic], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  usuarios usuarios @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([id_usuario, id_comic])
 }
 
 model tokens {
-  id         Int       @id @default(autoincrement())
-  token      String?   @db.VarChar(255)
+  id         Int     @id @default(autoincrement())
+  token      String? @db.VarChar(255)
   id_usuario Int?
-  usuarios   usuarios? @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  usuarios usuarios? @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model usuarios {
-  id                 Int         @id @default(autoincrement())
-  nombre             String?     @db.VarChar(255)
-  identificacion     String?     @unique @db.VarChar(255)
-  correo_electronico String?     @unique @db.VarChar(255)
-  contrasena         String?     @db.VarChar(255)
-  favoritos          favoritos[]
-  tokens             tokens[]
+  id                 Int     @id @default(autoincrement())
+  nombre             String? @db.VarChar(255)
+  identificacion     String? @unique @db.VarChar(255)
+  correo_electronico String? @unique @db.VarChar(255)
+  contrasena         String? @db.VarChar(255)
+
+  favoritos favoritos[]
+  tokens    tokens[]
 }
