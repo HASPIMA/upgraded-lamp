@@ -1,8 +1,11 @@
 import hashlib
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
+from os import urandom, getenv
 from typing import Optional
+
+import jwt
+from datetime import datetime
 from prisma.models import usuarios
-from os import urandom
 
 
 def hash_password(password: str, salt: Optional[bytes] = None) -> tuple[str, str]:
@@ -56,3 +59,42 @@ def verify_password(user: usuarios, password: str) -> bool:
     hashed_password, _ = hash_password(password, b64decode(user.salt))
 
     return user.contrasena == hashed_password
+
+
+def generate_jwt(user: usuarios) -> str:
+    """
+    Generates a JWT for a user.
+
+    Parameters
+    ----------
+    user : prisma.models.usuarios
+        The user to generate the token for.
+
+    Returns
+    -------
+    str
+        The generated JWT token.
+    """
+    now = datetime.utcnow()
+
+    _user = user.dict()
+    _user.pop('contrasena')
+    _user.pop('salt')
+
+    return jwt.encode(
+        {
+            # User data without the password and salt
+            'user': _user,
+
+            # Subject is the user id
+            'sub': user.id,
+
+            # Issued at now
+            'iat': now.timestamp(),
+
+            # Expires in 1 minute by default if not specified
+            'exp': now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60)),
+        },
+        key='secret',
+        algorithm='HS256',
+    )
