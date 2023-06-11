@@ -1,4 +1,3 @@
-
 from typing import Any, TypedDict, Union
 
 from prisma.models import usuarios

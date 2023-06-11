@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, status
 from prisma.client import get_client
 from prisma.errors import PrismaError
 from src.auth.utils import generate_jwt, hash_password
@@ -7,7 +7,7 @@ from src.types.user import SignupUser
 router = APIRouter(prefix="/signup")
 
 
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(body: SignupUser, response: Response):
     data = None
     errors = []
@@ -42,7 +42,7 @@ async def create_user(body: SignupUser, response: Response):
     except PrismaError as e:
         errors.append(e)
 
-        response.status_code = 500
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
     finally:
         return {
