@@ -83,24 +83,26 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
 
     expires = now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60))
 
+    token = jwt.encode(
+        {
+            # User data without the password and salt
+            'user': _user,
+
+            # Subject is the user id
+            'sub': user.id,
+
+            # Issued at now
+            'iat': now.timestamp(),
+
+            # Expires in 1 minute by default if not specified
+            'exp': expires,
+        },
+        key='secret',
+        algorithm='HS256',
+    )
+
     return (
-        jwt.encode(
-            {
-                # User data without the password and salt
-                'user': _user,
-
-                # Subject is the user id
-                'sub': user.id,
-
-                # Issued at now
-                'iat': now.timestamp(),
-
-                # Expires in 1 minute by default if not specified
-                'exp': expires,
-            },
-            key='secret',
-            algorithm='HS256',
-        ),
+        token,
         # Return the expiration time as a datetime object
         # timezone is set to UTC
         datetime.fromtimestamp(expires, tz=timezone.utc),
