@@ -1,11 +1,12 @@
 import hashlib
 from base64 import b64decode, b64encode
-from os import urandom, getenv
+from datetime import datetime, timezone
+from os import getenv, urandom
 from typing import Optional
 
 import jwt
-from datetime import datetime, timezone
 from prisma.models import usuarios
+from src.types.token import UserTokenPayload
 
 SECRET = getenv('JWT_SECRET', 'secret')
 
@@ -79,29 +80,31 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
     """
     now = datetime.now(tz=timezone.utc)
 
-    _user = user.dict()
-    _user.pop('contrasena')
-    _user.pop('salt')
+    _user = user
+    _user.contrasena = ''
+    _user.salt = ''
 
     expires = now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60))
 
+    payload: UserTokenPayload = {
+        # User data without the password and salt
+        'user': _user,
+
+        # Subject is the user id
+        'sub': user.id,
+
+        # Issued at now
+        'iat': now.timestamp(),
+
+        # Not before now
+        'nbf': now.timestamp(),
+
+        # Expires in 1 minute by default if not specified
+        'exp': expires,
+    }
+
     token = jwt.encode(
-        {
-            # User data without the password and salt
-            'user': _user,
-
-            # Subject is the user id
-            'sub': user.id,
-
-            # Issued at now
-            'iat': now.timestamp(),
-
-            # Not before now
-            'nbf': now.timestamp(),
-
-            # Expires in 1 minute by default if not specified
-            'exp': expires,
-        },
+        dict(payload),
         key=SECRET,
         algorithm='HS256',
     )
@@ -114,7 +117,7 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
     )
 
 
-def decode_and_verify_jwt(token: str) -> dict:
+def decode_and_verify_jwt(token: str) -> UserTokenPayload:
     """
     Decodes and verifies a JWT.
 
@@ -125,8 +128,8 @@ def decode_and_verify_jwt(token: str) -> dict:
 
     Returns
     -------
-    dict
-        The decoded JWT payload.
+    UserTokenPayload
+        The decoded and verified JWT.
 
     Raises
     ------
