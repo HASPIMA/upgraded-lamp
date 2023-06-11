@@ -88,7 +88,7 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
 
     payload: UserTokenPayload = {
         # User data without the password and salt
-        'user': _user,
+        'user': _user.dict(),
 
         # Subject is the user id
         'sub': user.id,

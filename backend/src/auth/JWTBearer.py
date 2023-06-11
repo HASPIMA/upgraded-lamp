@@ -5,7 +5,7 @@ from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from prisma import get_client
 from prisma.models import usuarios
-from src.types.token import UserTokenPayload
+from src.types.token import UserPayload, UserTokenPayload
 
 from .utils import decode_and_verify_jwt
 
@@ -58,7 +58,7 @@ class JWTBearer(HTTPBearer):
                 )
 
             uid: Optional[int] = decoded_token.get('sub')
-            user_token: Optional[usuarios] = decoded_token.get('user')
+            user_token: Optional[UserPayload] = decoded_token.get('user')
 
             # Prepare the response
             add_error('Invalid token.')
