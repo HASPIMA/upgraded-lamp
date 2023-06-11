@@ -3,7 +3,7 @@ from prisma.client import get_client
 from prisma.errors import PrismaError
 from src.types.user import SignupUser
 
-from .utils import hash_password
+from .utils import generate_jwt, hash_password
 
 router = APIRouter(prefix="/signup")
 
@@ -18,7 +18,7 @@ async def create_user(body: SignupUser, response: Response):
         hashed_password, salt = hash_password(body.contrasena)
 
         # create the user
-        data = await get_client().usuarios.create(
+        user = await get_client().usuarios.create(
             data={
                 'nombre': body.nombre,
                 'identificacion': body.identificacion,
@@ -29,8 +29,17 @@ async def create_user(body: SignupUser, response: Response):
         )
 
         # remove the hashed password and salt from the response
-        data.contrasena = ''
-        data.salt = ''
+        user.contrasena = ''
+        user.salt = ''
+
+        # generate the JWT and expiration time
+        token, expires = generate_jwt(user)
+
+        data = {
+            'token': token,
+            'expires': expires,
+            'user': user,
+        }
     except PrismaError as e:
         errors.append(e)
 
