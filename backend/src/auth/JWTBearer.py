@@ -14,7 +14,7 @@ class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
-    async def __call__(self, request: Request) -> UserTokenPayload:
+    async def __call__(self, request: Request) -> tuple[UserTokenPayload, str]:
         credentials: Optional[HTTPAuthorizationCredentials] = await super(JWTBearer, self).__call__(request)
 
         response = {
@@ -39,8 +39,10 @@ class JWTBearer(HTTPBearer):
                     detail=response
                 )
 
+            token = credentials.credentials
+
             try:
-                decoded_token = decode_and_verify_jwt(credentials.credentials)
+                decoded_token = decode_and_verify_jwt(token)
             except jwt.exceptions.InvalidTokenError as e:
                 add_error('Invalid token or expired token.')
 
@@ -111,7 +113,7 @@ class JWTBearer(HTTPBearer):
 
             decoded_token['user'] = user
 
-            return decoded_token
+            return decoded_token, token
 
         add_error('Invalid authorization code.')
 
