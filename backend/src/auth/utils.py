@@ -96,6 +96,9 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
             # Issued at now
             'iat': now.timestamp(),
 
+            # Not before now
+            'nbf': now.timestamp(),
+
             # Expires in 1 minute by default if not specified
             'exp': expires,
         },
