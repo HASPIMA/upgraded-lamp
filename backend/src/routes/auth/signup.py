@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Response
 from prisma.client import get_client
 from prisma.errors import PrismaError
+from src.auth.utils import generate_jwt, hash_password
 from src.types.user import SignupUser
-
-from .utils import generate_jwt, hash_password
 
 router = APIRouter(prefix="/signup")
 
