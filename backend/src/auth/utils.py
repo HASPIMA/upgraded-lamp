@@ -144,3 +144,11 @@ def decode_and_verify_jwt(token: str) -> dict:
             'verify_nbf': True,
         },
     )
+
+
+__all__ = [
+    'hash_password',
+    'verify_password',
+    'generate_jwt',
+    'decode_and_verify_jwt',
+]
