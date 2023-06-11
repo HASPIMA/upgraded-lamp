@@ -1,7 +1,7 @@
 from typing import Optional
 
 import jwt
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .utils import decode_and_verify_jwt
@@ -32,7 +32,7 @@ class JWTBearer(HTTPBearer):
                 add_error('Invalid authentication scheme.')
 
                 raise HTTPException(
-                    status_code=401,
+                    status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=response
                 )
 
@@ -42,7 +42,7 @@ class JWTBearer(HTTPBearer):
                 add_error('Invalid token or expired token.')
 
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail=response,
                 ) from e
 
@@ -50,7 +50,7 @@ class JWTBearer(HTTPBearer):
                 add_error('Invalid token or expired token.')
 
                 raise HTTPException(
-                    status_code=401,
+                    status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=response,
                 )
 
@@ -68,14 +68,14 @@ class JWTBearer(HTTPBearer):
                     not isinstance(uid, int) or \
                     not isinstance(user_token, dict):
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail=response,
                 )
 
             # Check subject and user id match
             if uid != user_token.get('id'):
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_403_FORBIDDEN,
                     detail=response,
                 )
 
