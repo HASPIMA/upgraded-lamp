@@ -57,7 +57,6 @@ class JWTBearer(HTTPBearer):
             user_token: Optional[dict] = decoded_token.get('user')
 
             # TODO: Check if the user exists in the database
-            # TODO: Check subject and user id match
 
             # Prepare the response
             add_error('Invalid token.')
@@ -67,6 +66,13 @@ class JWTBearer(HTTPBearer):
                     user_token is None or \
                     not isinstance(uid, int) or \
                     not isinstance(user_token, dict):
+                raise HTTPException(
+                    status_code=400,
+                    detail=response,
+                )
+
+            # Check subject and user id match
+            if uid != user_token.get('id'):
                 raise HTTPException(
                     status_code=400,
                     detail=response,
