@@ -29,8 +29,9 @@ model favoritos {
 }
 
 model tokens {
-  id         Int    @id @default(autoincrement())
-  token      String @db.VarChar(255)
+  id         Int     @id @default(autoincrement())
+  token      Json    @db.Json
+  invalidado Boolean @default(true)
   id_usuario Int?
 
   usuarios usuarios? @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
