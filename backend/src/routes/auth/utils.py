@@ -4,7 +4,7 @@ from os import urandom, getenv
 from typing import Optional
 
 import jwt
-from datetime import datetime
+from datetime import datetime, timezone
 from prisma.models import usuarios
 
 
@@ -75,26 +75,29 @@ def generate_jwt(user: usuarios) -> str:
     str
         The generated JWT token.
     """
-    now = datetime.utcnow()
+    now = datetime.now(tz=timezone.utc)
 
     _user = user.dict()
     _user.pop('contrasena')
     _user.pop('salt')
 
-    return jwt.encode(
-        {
-            # User data without the password and salt
-            'user': _user,
+    expires = now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60))
 
-            # Subject is the user id
-            'sub': user.id,
+    return \
+        jwt.encode(
+            {
+                # User data without the password and salt
+                'user': _user,
 
-            # Issued at now
-            'iat': now.timestamp(),
+                # Subject is the user id
+                'sub': user.id,
 
-            # Expires in 1 minute by default if not specified
-            'exp': now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60)),
-        },
-        key='secret',
-        algorithm='HS256',
-    )
+                # Issued at now
+                'iat': now.timestamp(),
+
+                # Expires in 1 minute by default if not specified
+                'exp': expires,
+            },
+            key='secret',
+            algorithm='HS256',
+        )
