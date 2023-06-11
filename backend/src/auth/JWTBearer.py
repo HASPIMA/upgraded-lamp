@@ -60,14 +60,13 @@ class JWTBearer(HTTPBearer):
             uid: Optional[int] = decoded_token.get('sub')
             user_token: Optional[UserPayload] = decoded_token.get('user')
 
-            # Prepare the response
-            add_error('Invalid token.')
-
             # Check if the token's subject and user id are valid
             if uid is None or \
                     user_token is None or \
                     not isinstance(uid, int) or \
                     not isinstance(user_token, dict):
+                add_error('Invalid token.')
+
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=response,
@@ -75,17 +74,34 @@ class JWTBearer(HTTPBearer):
 
             # Check subject and user id match
             if uid != user_token.get('id'):
+                add_error('Invalid token.')
+
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=response,
                 )
 
             # Check if the user exists in the database
-            user: Optional[usuarios] = await get_client().usuarios.find_unique(
-                where={
-                    'id': uid,
-                }
-            )
+            try:
+                user: Optional[usuarios] = await get_client().usuarios.find_unique(
+                    where={
+                        'id': uid,
+                    },
+                    include={
+                        'favoritos': True,
+                    },
+                )
+
+            except Exception as e:
+                add_error('Internal server error.')
+
+                print(f'Error getting user ({uid}):')
+                print(type(e), e)
+
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=response,
+                ) from e
 
             if user is None:
                 raise HTTPException(
