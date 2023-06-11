@@ -100,6 +100,6 @@ class JWTBearer(HTTPBearer):
         add_error('Invalid authorization code.')
 
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=response,
         )
