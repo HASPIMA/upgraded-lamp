@@ -112,3 +112,35 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
         # timezone is set to UTC
         datetime.fromtimestamp(expires, tz=timezone.utc),
     )
+
+
+def decode_and_verify_jwt(token: str) -> dict:
+    """
+    Decodes and verifies a JWT.
+
+    Parameters
+    ----------
+    token : str
+        The JWT to decode and verify.
+
+    Returns
+    -------
+    dict
+        The decoded JWT payload.
+
+    Raises
+    ------
+    jwt.exceptions.JWTError
+        If the token is invalid.
+    """
+
+    return jwt.decode(
+        token,
+        SECRET,
+        algorithms=['HS256'],
+        options={
+            'verify_exp': True,
+            'verify_iat': True,
+            'verify_nbf': True,
+        },
+    )
