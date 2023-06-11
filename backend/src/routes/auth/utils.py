@@ -61,7 +61,7 @@ def verify_password(user: usuarios, password: str) -> bool:
     return user.contrasena == hashed_password
 
 
-def generate_jwt(user: usuarios) -> str:
+def generate_jwt(user: usuarios) -> tuple[str, datetime]:
     """
     Generates a JWT for a user.
 
@@ -72,8 +72,8 @@ def generate_jwt(user: usuarios) -> str:
 
     Returns
     -------
-    str
-        The generated JWT token.
+    tuple[str, datetime]
+        A tuple containing the JWT and the expiration time.
     """
     now = datetime.now(tz=timezone.utc)
 
@@ -83,7 +83,7 @@ def generate_jwt(user: usuarios) -> str:
 
     expires = now.timestamp() + int(getenv('JWT_EXPIRATION_TIME', 60))
 
-    return \
+    return (
         jwt.encode(
             {
                 # User data without the password and salt
@@ -100,4 +100,8 @@ def generate_jwt(user: usuarios) -> str:
             },
             key='secret',
             algorithm='HS256',
-        )
+        ),
+        # Return the expiration time as a datetime object
+        # timezone is set to UTC
+        datetime.fromtimestamp(expires, tz=timezone.utc),
+    )
