@@ -7,6 +7,8 @@ import jwt
 from datetime import datetime, timezone
 from prisma.models import usuarios
 
+SECRET = getenv('JWT_SECRET', 'secret')
+
 
 def hash_password(password: str, salt: Optional[bytes] = None) -> tuple[str, str]:
     """
@@ -97,7 +99,7 @@ def generate_jwt(user: usuarios) -> tuple[str, datetime]:
             # Expires in 1 minute by default if not specified
             'exp': expires,
         },
-        key='secret',
+        key=SECRET,
         algorithm='HS256',
     )
 
