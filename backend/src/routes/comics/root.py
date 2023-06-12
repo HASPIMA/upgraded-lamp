@@ -37,6 +37,10 @@ async def get_comics(
         ]
 
         data = {
+            'offset': comics['data']['offset'],
+            'limit': comics['data']['limit'],
+            'total': comics['data']['total'],
+            'count': comics['data']['count'],
             'results': results
         }
 
