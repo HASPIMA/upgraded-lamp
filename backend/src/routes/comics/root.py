@@ -1,5 +1,7 @@
+from typing import Annotated, Optional
+
 import httpx
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Query, Response, status
 from src.types.dependencies import AuthenticationDependant
 
 from .utils import MARVEL_COMICS_URL, generate_params
@@ -11,6 +13,14 @@ router = APIRouter()
 async def get_comics(
     _: AuthenticationDependant,
     response: Response,
+    offset: Annotated[
+        Optional[int],
+        Query(
+            title='Offset',
+            description='The requested offset (number of skipped results) of the call.',
+            ge=0,
+        ),
+    ] = None,
 ):
 
     data = None
@@ -19,6 +29,9 @@ async def get_comics(
     try:
         async with httpx.AsyncClient() as client:
             params = generate_params()
+
+            if offset is not None:
+                params['offset'] = offset
 
             response_marvel = await client.get(
                 MARVEL_COMICS_URL,
