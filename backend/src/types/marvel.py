@@ -6,6 +6,7 @@ MarvelParameters = TypedDict(
         'apikey': str,
         'ts': float,
         'hash': str,
+        'offset': int,
     },
     total=True,
 )

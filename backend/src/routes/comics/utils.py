@@ -39,7 +39,8 @@ def generate_params() -> MarvelParameters:
     hash, timestamp = generate_hash()
 
     return {
-        "apikey": MARVEL_PUBLIC_KEY,
-        "ts": timestamp,
-        "hash": hash,
+        'apikey': MARVEL_PUBLIC_KEY,
+        'ts': timestamp,
+        'hash': hash,
+        'offset': 0,
     }
