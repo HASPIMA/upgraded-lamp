@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Optional, TypedDict
 
 from pydantic import BaseModel
 
@@ -17,7 +17,7 @@ MarvelParameters = TypedDict(
 class Comic(BaseModel):
     id: int
     title: str
-    description: str
+    description: Optional[str]
     image: str
 
 
