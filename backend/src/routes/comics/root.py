@@ -2,8 +2,8 @@ from typing import Annotated, Optional
 
 import httpx
 from fastapi import APIRouter, Query, Response, status
+from src.routes.comics.utils import convert_comics, to_paginated_comics
 from src.types.dependencies import AuthenticationDependant
-from src.types.marvel import Comic, PaginatedComics
 from src.types.responses import ComicResponse, PaginatedComicsResponse
 
 from .utils import MARVEL_COMICS_URL, generate_params
@@ -41,23 +41,9 @@ async def get_comics(
 
         comics = response_marvel.json()
 
-        results = [
-            Comic(
-                id=comic['id'],
-                title=comic['title'],
-                description=comic['description'],
-                image=f"{comic['thumbnail']['path']}.{comic['thumbnail']['extension']}"
-            )
-            for comic in comics["data"]["results"]
-        ]
+        results = convert_comics(comics)
 
-        response_endpoint.data = PaginatedComics(
-            offset=comics['data']['offset'],
-            limit=comics['data']['limit'],
-            total=comics['data']['total'],
-            count=comics['data']['count'],
-            results=results,
-        )
+        response_endpoint.data = to_paginated_comics(comics, results)
 
     except Exception as e:
         response_endpoint.errors.append(str(e))
@@ -85,14 +71,8 @@ async def get_comic_by_id(
             )
 
         comic = response_marvel.json()
-        comic = comic['data']['results'][0]
 
-        response_endpoint.data = Comic(
-            id=comic['id'],
-            title=comic['title'],
-            description=comic['description'],
-            image=f"{comic['thumbnail']['path']}.{comic['thumbnail']['extension']}"
-        )
+        response_endpoint.data = convert_comics(comic)[0]
 
     except Exception as e:
         response_endpoint.errors.append(str(e))
