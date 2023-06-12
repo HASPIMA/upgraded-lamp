@@ -3,8 +3,8 @@ from typing import Annotated, Optional
 import httpx
 from fastapi import APIRouter, Query, Response, status
 from src.types.dependencies import AuthenticationDependant
-from src.types.marvel import Comic
-from src.types.responses import ComicResponse
+from src.types.marvel import Comic, PaginatedComics
+from src.types.responses import ComicResponse, PaginatedComicsResponse
 
 from .utils import MARVEL_COMICS_URL, generate_params
 
@@ -23,10 +23,9 @@ async def get_comics(
             ge=0,
         ),
     ] = None,
-):
+) -> PaginatedComicsResponse:
 
-    data = None
-    errors = []
+    response_endpoint = PaginatedComicsResponse()
 
     try:
         async with httpx.AsyncClient() as client:
@@ -43,31 +42,29 @@ async def get_comics(
         comics = response_marvel.json()
 
         results = [
-            {
-                "id": comic["id"],
-                "title": comic["title"],
-                "image": f"{comic['thumbnail']['path']}.{comic['thumbnail']['extension']}"
-            }
+            Comic(
+                id=comic['id'],
+                title=comic['title'],
+                description=comic['description'],
+                image=f"{comic['thumbnail']['path']}.{comic['thumbnail']['extension']}"
+            )
             for comic in comics["data"]["results"]
         ]
 
-        data = {
-            'offset': comics['data']['offset'],
-            'limit': comics['data']['limit'],
-            'total': comics['data']['total'],
-            'count': comics['data']['count'],
-            'results': results
-        }
+        response_endpoint.data = PaginatedComics(
+            offset=comics['data']['offset'],
+            limit=comics['data']['limit'],
+            total=comics['data']['total'],
+            count=comics['data']['count'],
+            results=results,
+        )
 
     except Exception as e:
-        errors.append(str(e))
+        response_endpoint.errors.append(str(e))
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
     finally:
-        return {
-            'data': data,
-            'errors': errors
-        }
+        return response_endpoint
 
 
 @router.get("/{comic_id}")
