@@ -15,3 +15,5 @@ UserTokenPayload = TypedDict(
     },
     total=True,
 )
+
+JWTokenBearer = tuple[UserTokenPayload, str]

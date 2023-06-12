@@ -3,10 +3,10 @@ from typing import Optional
 import jwt
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from src.types.token import UserPayload, UserTokenPayload
 from prisma import Json, get_client
 from prisma.errors import PrismaError
 from prisma.models import tokens, usuarios
+from src.types.token import JWTokenBearer, UserPayload
 
 from .utils import decode_and_verify_jwt
 
@@ -15,7 +15,7 @@ class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
-    async def __call__(self, request: Request) -> tuple[UserTokenPayload, str]:
+    async def __call__(self, request: Request) -> JWTokenBearer:
         credentials: Optional[HTTPAuthorizationCredentials] = await super(JWTBearer, self).__call__(request)
 
         response = {

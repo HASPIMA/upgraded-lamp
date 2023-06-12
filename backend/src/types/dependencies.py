@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import Depends
 from src.auth.JWTBearer import JWTBearer
-from src.types.token import UserTokenPayload
+from src.types.token import JWTokenBearer
 
-AuthenticationToken = Annotated[
-    tuple[UserTokenPayload, str],
+AuthenticationDependant = Annotated[
+    JWTokenBearer,
     Depends(JWTBearer()),
 ]
