@@ -1,4 +1,5 @@
 from typing import TypedDict
+from pydantic import BaseModel
 
 MarvelParameters = TypedDict(
     "MarvelParameters",
@@ -10,3 +11,10 @@ MarvelParameters = TypedDict(
     },
     total=True,
 )
+
+
+class Comic(BaseModel):
+    id: int
+    title: str
+    description: str
+    image: str
