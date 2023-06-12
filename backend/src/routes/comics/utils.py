@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from hashlib import md5
 from os import getenv
+from src.types.marvel import Comic, PaginatedComics
 
 from src.types.marvel import MarvelParameters
 
@@ -43,3 +44,54 @@ def generate_params() -> MarvelParameters:
         'hash': hash,
         'offset': 0,
     }
+
+
+def convert_comics(comics: dict) -> list[Comic]:
+    '''
+    Converts the comics from the Marvel API to the Comic model.
+
+    Parameters
+    ----------
+    comics : dict
+        The comics from the Marvel API.
+
+    Returns
+    -------
+    list[Comic]
+        A list of Comic models.
+    '''
+    return [
+        Comic(
+            id=comic['id'],
+            title=comic['title'],
+            description=comic['description'],
+            image=f"{comic['thumbnail']['path']}.{comic['thumbnail']['extension']}"
+        )
+        for comic in comics["data"]["results"]
+    ]
+
+
+def to_paginated_comics(comics: dict, results: list[Comic]) -> PaginatedComics:
+    '''
+    Converts the comics from the Marvel API to the PaginatedComics model.
+
+    Parameters
+    ----------
+    comics : dict
+        The comics from the Marvel API.
+
+    results : list[Comic]
+        The comics converted to the Comic model.
+
+    Returns
+    -------
+    PaginatedComics
+        A PaginatedComics model.
+    '''
+    return PaginatedComics(
+        offset=comics['data']['offset'],
+        limit=comics['data']['limit'],
+        total=comics['data']['total'],
+        count=comics['data']['count'],
+        results=results,
+    )
