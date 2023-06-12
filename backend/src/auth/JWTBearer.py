@@ -3,9 +3,10 @@ from typing import Optional
 import jwt
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from prisma import get_client
-from prisma.models import usuarios
 from src.types.token import UserPayload, UserTokenPayload
+from prisma import Json, get_client
+from prisma.errors import PrismaError
+from prisma.models import tokens, usuarios
 
 from .utils import decode_and_verify_jwt
 
@@ -39,10 +40,10 @@ class JWTBearer(HTTPBearer):
                     detail=response
                 )
 
-            token = credentials.credentials
+            credential_token = credentials.credentials
 
             try:
-                decoded_token = decode_and_verify_jwt(token)
+                decoded_token = decode_and_verify_jwt(credential_token)
             except jwt.exceptions.InvalidTokenError as e:
                 add_error('Invalid token or expired token.')
 
@@ -83,6 +84,36 @@ class JWTBearer(HTTPBearer):
                     detail=response,
                 )
 
+            # Check token is not invalidated
+            try:
+                token_db: Optional[tokens] = await get_client().tokens.find_first(
+                    where={
+                        'id_usuario': uid,
+                        'token': {
+                            'equals': Json(credential_token),
+                        },
+                        'invalidado': True,
+                    }
+                )
+
+                if token_db is not None and token_db.invalidado:
+                    add_error('Invalid token.')
+
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=response,
+                    )
+            except PrismaError as e:
+                add_error('Internal server error.')
+
+                print(f'Error getting token ({credential_token}):')
+                print(type(e), e)
+
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=response,
+                ) from e
+
             # Check if the user exists in the database
             try:
                 user: Optional[usuarios] = await get_client().usuarios.find_unique(
@@ -113,7 +144,7 @@ class JWTBearer(HTTPBearer):
 
             decoded_token['user'] = user
 
-            return decoded_token, token
+            return decoded_token, credential_token
 
         add_error('Invalid authorization code.')
 
