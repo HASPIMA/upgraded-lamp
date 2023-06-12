@@ -18,3 +18,11 @@ class Comic(BaseModel):
     title: str
     description: str
     image: str
+
+
+class PaginatedComics(BaseModel):
+    offset: int
+    limit: int
+    total: int
+    count: int
+    results: list[Comic]
