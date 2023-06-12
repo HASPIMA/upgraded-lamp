@@ -4,7 +4,6 @@ from os import getenv
 
 from src.types.marvel import MarvelParameters
 
-
 MARVEL_PRIVATE_KEY = getenv('MARVEL_PRIVATE_KEY', '')
 MARVEL_PUBLIC_KEY = getenv('MARVEL_PUBLIC_KEY', '')
 
