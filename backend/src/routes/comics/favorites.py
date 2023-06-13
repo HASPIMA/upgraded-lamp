@@ -1,12 +1,13 @@
-from typing import cast
+import asyncio
+from typing import Optional, cast
 
 import httpx
 from fastapi import APIRouter, Response, status
 from prisma import get_client
 from prisma.models import usuarios
-from src.types.marvel import Comic, PaginatedComics
 from src.types.comics import CreateFavoriteBody
 from src.types.dependencies import AuthenticationDependant
+from src.types.marvel import Comic, MarvelParameters, PaginatedComics
 from src.types.responses import ComicResponse, PaginatedComicsResponse
 
 from .utils import convert_comics, generate_params, marvel_get_comic_by_id
@@ -75,34 +76,74 @@ async def get_all_favorites(
             },
         )
 
-        comics: list[Comic] = []
+        # Define a coroutine to fetch the comic by ID
+        async def fetch_comic(
+            client: httpx.AsyncClient,
+            params: MarvelParameters,
+            comic_id: int,
+        ) -> Optional[Comic]:
+            '''
+            Try to fetch a comic from the Marvel API by ID and convert it to
+            a Comic object if successful or return None if not found or an
+            error occurred.
 
-        # Fetch the comics from the Marvel API and return them
+            Parameters
+            ----------
+            client : httpx.AsyncClient
+                The HTTP client to use
+
+            params : MarvelParameters
+                The parameters to use in the request
+
+            comic_id : int
+                The ID of the comic to fetch
+
+            Returns
+            -------
+            Comic
+                The comic fetched from the Marvel API
+
+            None
+                If the comic was not found or an error occurred
+            '''
+            response_marvel = await marvel_get_comic_by_id(
+                client=client,
+                params=params,
+                id=comic_id,
+            )
+
+            if response_marvel.is_error:
+                result.errors.append(str(response_marvel))
+                return None
+
+            comic = response_marvel.json()
+            return convert_comics(comic)[0]
+
+        # Create a list of coroutines to fetch the comics
+        coroutines = []
         async with httpx.AsyncClient() as client:
             for favorite in favorites_ids:
                 params = generate_params()
+                coroutine = fetch_comic(client, params, favorite.id_comic)
+                coroutines.append(coroutine)
 
-                response_marvel = await marvel_get_comic_by_id(
-                    client=client,
-                    params=params,
-                    id=favorite.id_comic,
-                )
+            # Use asyncio.gather to run all coroutines concurrently
+            comics = await asyncio.gather(*coroutines)
 
-                if response_marvel.is_error:
-                    result.errors.append(str(response_marvel))
-                    continue
-
-                comic = response_marvel.json()
-
-                comics.append(convert_comics(comic)[0])
+        # Remove None values and paginate the results
+        comics = [comic for comic in comics if comic is not None]
+        total_comics = len(comics)
+        offset = 0
+        limit = total_comics
+        count = total_comics
 
         # TODO: Paginate the results
         result.data = PaginatedComics(
             results=comics,
-            total=len(comics),
-            offset=0,
-            limit=len(comics),
-            count=len(comics),
+            total=total_comics,
+            offset=offset,
+            limit=limit,
+            count=count,
         )
 
     except httpx.HTTPStatusError as http_error:
