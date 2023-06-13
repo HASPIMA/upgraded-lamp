@@ -48,7 +48,7 @@ class JWTBearer(HTTPBearer):
                 add_error('Invalid token or expired token.')
 
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
+                    status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=response,
                 ) from e
 
