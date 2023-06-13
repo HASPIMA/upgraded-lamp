@@ -16,11 +16,6 @@ class ComicResponse(BaseModel):
     errors: list = []
 
 
-class FavoritosResponse(BaseModel):
-    data: Optional[favoritos] = None
-    errors: list = []
-
-
 class FavoritosManyResponse(BaseModel):
     data: Optional[list[favoritos]] = None
     errors: list = []

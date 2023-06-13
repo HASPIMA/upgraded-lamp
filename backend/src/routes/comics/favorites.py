@@ -1,11 +1,14 @@
 from typing import cast
 
+import httpx
 from fastapi import APIRouter, Response, status
 from prisma import get_client
 from prisma.models import usuarios
 from src.types.comics import CreateFavoriteBody
 from src.types.dependencies import AuthenticationDependant
-from src.types.responses import FavoritosManyResponse, FavoritosResponse
+from src.types.responses import ComicResponse, FavoritosManyResponse
+
+from .utils import convert_comics, generate_params, marvel_get_comic_by_id
 
 router = APIRouter(prefix='/favorites', tags=['favorites'])
 
@@ -15,8 +18,8 @@ async def save_favorite(
     auth: AuthenticationDependant,
     response: Response,
     comic_body: CreateFavoriteBody,
-) -> FavoritosResponse:
-    response_endpoint = FavoritosResponse()
+) -> ComicResponse:
+    response_endpoint = ComicResponse()
 
     user: usuarios = cast(usuarios, auth[0]['user'])
 
@@ -28,9 +31,20 @@ async def save_favorite(
             },
         )
 
-        response_endpoint.data = favorite
+        # Fetch the comic from the Marvel API and return it
+        async with httpx.AsyncClient() as client:
+            params = generate_params()
 
-        # TODO: fetch the comic from the Marvel API and return them
+            response_marvel = await marvel_get_comic_by_id(
+                client=client,
+                params=params,
+                id=favorite.id_comic,
+            )
+
+        comic = response_marvel.json()
+
+        response_endpoint.data = convert_comics(comic)[0]
+
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         response_endpoint.errors.append(str(e))
