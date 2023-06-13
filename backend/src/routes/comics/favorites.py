@@ -41,9 +41,15 @@ async def save_favorite(
                 id=favorite.id_comic,
             )
 
+        response_marvel.raise_for_status()
+
         comic = response_marvel.json()
 
         response_endpoint.data = convert_comics(comic)[0]
+
+    except httpx.HTTPStatusError as http_error:
+        response.status_code = http_error.response.status_code
+        response_endpoint.errors.append(str(http_error))
 
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -70,6 +76,10 @@ async def get_all_favorites(
 
         result.data = favorites
         # TODO: fetch the comics from the Marvel API and return them
+    except httpx.HTTPStatusError as http_error:
+        response.status_code = http_error.response.status_code
+        result.errors.append(str(http_error))
+
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         result.errors.append(str(e))

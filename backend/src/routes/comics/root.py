@@ -40,11 +40,17 @@ async def get_comics(
                 params=params,  # type: ignore
             )
 
+        response_marvel.raise_for_status()
+
         comics = response_marvel.json()
 
         results = convert_comics(comics)
 
         response_endpoint.data = to_paginated_comics(comics, results)
+
+    except httpx.HTTPStatusError as http_error:
+        response.status_code = http_error.response.status_code
+        response_endpoint.errors.append(str(http_error))
 
     except Exception as e:
         response_endpoint.errors.append(str(e))
@@ -72,9 +78,15 @@ async def get_comic_by_id(
                 id=comic_id,
             )
 
+        response_marvel.raise_for_status()
+
         comic = response_marvel.json()
 
         response_endpoint.data = convert_comics(comic)[0]
+
+    except httpx.HTTPStatusError as http_error:
+        response.status_code = http_error.response.status_code
+        response_endpoint.errors.append(str(http_error))
 
     except Exception as e:
         response_endpoint.errors.append(str(e))
