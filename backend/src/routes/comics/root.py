@@ -2,6 +2,7 @@ from typing import Annotated, Optional
 
 import httpx
 from fastapi import APIRouter, Query, Response, status
+from src.routes.comics.utils import marvel_get_comic_by_id
 from src.routes.comics.utils import convert_comics, to_paginated_comics
 from src.types.dependencies import AuthenticationDependant
 from src.types.responses import ComicResponse, PaginatedComicsResponse
@@ -65,9 +66,10 @@ async def get_comic_by_id(
         async with httpx.AsyncClient() as client:
             params = generate_params()
 
-            response_marvel = await client.get(
-                f"{MARVEL_COMICS_URL}/{comic_id}",
-                params=params,  # type: ignore
+            response_marvel = await marvel_get_comic_by_id(
+                client=client,
+                params=params,
+                id=comic_id,
             )
 
         comic = response_marvel.json()
