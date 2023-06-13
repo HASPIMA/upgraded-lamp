@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from hashlib import md5
 from os import getenv
-from backend.src.types.marvel import MarvelParameters
+from src.types.marvel import MarvelParameters
 
 import httpx
 from src.types.marvel import Comic, PaginatedComics
