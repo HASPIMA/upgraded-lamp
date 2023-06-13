@@ -14,8 +14,3 @@ class PaginatedComicsResponse(BaseModel):
 class ComicResponse(BaseModel):
     data: Optional[Comic] = None
     errors: list = []
-
-
-class FavoritosManyResponse(BaseModel):
-    data: Optional[list[favoritos]] = None
-    errors: list = []
