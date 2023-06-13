@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
 from hashlib import md5
 from os import getenv
+from backend.src.types.marvel import MarvelParameters
+
+import httpx
 from src.types.marvel import Comic, PaginatedComics
 
 from src.types.marvel import MarvelParameters
@@ -95,3 +98,36 @@ def to_paginated_comics(comics: dict, results: list[Comic]) -> PaginatedComics:
         count=comics['data']['count'],
         results=results,
     )
+
+
+async def marvel_get_comic_by_id(
+    *,
+    client: httpx.AsyncClient,
+    params: MarvelParameters,
+    id: int,
+) -> httpx.Response:
+    '''
+    Gets a comic from the Marvel API by its id.
+
+    Parameters
+    ----------
+    client : httpx.AsyncClient
+        The httpx client.
+
+    params : src.types.marvel.MarvelParameters
+        The params to be used in the Marvel API request.
+
+    id : int
+        The id of the comic.
+
+    Returns
+    -------
+    httpx.Response
+        The response from the Marvel API.
+    '''
+    response_marvel = await client.get(
+        f"{MARVEL_COMICS_URL}/{id}",
+        params=params,  # type: ignore
+    )
+
+    return response_marvel
